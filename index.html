@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>シンプルなCODE-39バーコード生成器</title>
+    <title>Simple CODE-39 Barcode Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         body {
@@ -101,46 +101,46 @@
 </head>
 <body>
     <div class="container">
-        <h2>シンプルなCODE-39バーコード生成器</h2>
+        <h2>Simple CODE-39 Barcode Generator</h2>
         
         <div class="info">
-            <p>CODE-39で使用可能な文字: A-Z, 0-9, スペース, -, ., $, /, +, %</p>
+            <p>Characters available for CODE-39: A-Z, 0-9, space, -, ., $, /, +, %</p>
         </div>
         
         <div class="form-row">
-            <label for="barcodeInput">バーコード内容:</label>
-            <input type="text" id="barcodeInput" placeholder="例: 04770-S5A-308">
+            <label for="barcodeInput">Barcode content:</label>
+            <input type="text" id="barcodeInput" placeholder="Example: 04770-S5A-308">
         </div>
         
         <div class="form-row">
-            <label for="productNameInput">商品名 (オプション):</label>
-            <input type="text" id="productNameInput" placeholder="商品名を入力">
+            <label for="productNameInput">Product name (optional):</label>
+            <input type="text" id="productNameInput" placeholder="Enter product name">
         </div>
         
         <div class="button-container">
-            <button id="generateButton">バーコード生成</button>
+            <button id="generateButton">Generate Barcode</button>
         </div>
         
         <div id="error" class="error"></div>
         
-        <h3>または CSVファイルからバーコードを一括生成:</h3>
+        <h3>Or generate multiple barcodes from a CSV file:</h3>
         <div class="info">
-            <p>CSVファイルの形式:</p>
-            <p>1列目: コード（英数字可）</p>
-            <p>2列目: 商品名</p>
+            <p>CSV file format:</p>
+            <p>Column 1: Code (alphanumeric)</p>
+            <p>Column 2: Product name</p>
         </div>
         <input type="file" accept=".csv" id="fileInput" class="file-input">
         
         <div class="button-container" style="display:none" id="bulkDownloadContainer">
-            <button id="bulkDownloadSVG">全てのバーコードをSVGでダウンロード</button>
-            <button id="bulkDownloadPNG">全てのバーコードをPNGでダウンロード</button>
+            <button id="bulkDownloadSVG">Download all barcodes as SVG</button>
+            <button id="bulkDownloadPNG">Download all barcodes as PNG</button>
         </div>
         
         <div id="barcodeContainer" class="barcode-container"></div>
     </div>
 
     <script>
-        // JsBarcode互換のCODE-39エンコーダー
+        // JsBarcode compatible CODE-39 encoder
         class Code39Generator {
             constructor() {
                 this.encodings = {
@@ -162,12 +162,12 @@
                 };
             }
             
-            // バーコードデータを生成する
+            // Generate barcode data
             encode(text) {
-                // テキストを大文字に変換
+                // Convert text to uppercase
                 text = text.toUpperCase();
                 
-                // 対応する文字だけをフィルタ
+                // Filter only supported characters
                 let filteredText = "";
                 for (let i = 0; i < text.length; i++) {
                     if (this.encodings[text[i]]) {
@@ -176,24 +176,24 @@
                 }
                 
                 if (filteredText.length === 0) {
-                    return { valid: false, error: "有効な文字がありません" };
+                    return { valid: false, error: "No valid characters found" };
                 }
                 
-                // スタート文字「*」とストップ文字「*」を追加
+                // Add start character "*" and stop character "*"
                 const fullCode = "*" + filteredText + "*";
                 
                 let encodedBars = "";
-                // スタート文字を追加
+                // Add start character
                 encodedBars += this.encodings["*"];
                 
-                // 各文字をエンコード
+                // Encode each character
                 for (let i = 1; i < fullCode.length - 1; i++) {
-                    // 文字間にスペースを追加
+                    // Add space between characters
                     encodedBars += "0";
                     encodedBars += this.encodings[fullCode[i]];
                 }
                 
-                // ストップ文字を追加
+                // Add stop character
                 encodedBars += "0" + this.encodings["*"];
                 
                 return {
@@ -204,7 +204,7 @@
                 };
             }
             
-            // バーコードのSVGデータを生成
+            // Generate SVG data for barcode
             createSVG(text, options = {}) {
                 const result = this.encode(text);
                 
@@ -212,7 +212,7 @@
                     return { valid: false, error: result.error };
                 }
                 
-                // オプションのデフォルト値
+                // Default option values
                 const height = options.height || 100;
                 const moduleWidth = options.moduleWidth || 2;
                 const quietZone = options.quietZone || 10;
@@ -220,23 +220,23 @@
                 const fontHeight = options.fontHeight || 15;
                 const textMargin = options.textMargin || 5;
                 
-                // バーコードのパターンを変換
+                // Convert barcode pattern
                 let binary = "";
                 for (let i = 0; i < result.encoded.length; i++) {
                     binary += result.encoded[i] === "1" ? "1" : "0";
                 }
                 
-                // SVG要素の計算
+                // Calculate SVG elements
                 const totalWidth = binary.length * moduleWidth + 2 * quietZone;
                 const barHeight = height - (displayValue ? fontHeight + textMargin : 0);
                 
-                // SVG生成
+                // Generate SVG
                 let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                 svg.setAttribute("width", totalWidth);
                 svg.setAttribute("height", height);
                 svg.setAttribute("viewBox", `0 0 ${totalWidth} ${height}`);
                 
-                // バーを描画
+                // Draw bars
                 let x = quietZone;
                 for (let i = 0; i < binary.length; i++) {
                     if (binary[i] === "1") {
@@ -250,7 +250,7 @@
                     x += moduleWidth;
                 }
                 
-                // テキスト表示
+                // Display text
                 if (displayValue) {
                     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
                     text.setAttribute("x", totalWidth / 2);
@@ -271,7 +271,7 @@
             }
         }
         
-        // バーコードアイテムの作成
+        // Create barcode item
         function createBarcodeItem(code, productName) {
             const generator = new Code39Generator();
             const barcodeResult = generator.createSVG(code, {
@@ -284,21 +284,21 @@
             if (!barcodeResult.valid) {
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'error';
-                errorDiv.textContent = barcodeResult.error || `"${code}" は有効なCODE-39コードではありません。`;
+                errorDiv.textContent = barcodeResult.error || `"${code}" is not a valid CODE-39 code.`;
                 return errorDiv;
             }
             
             const item = document.createElement('div');
             item.className = 'barcode-item';
             
-            // SVGを追加
+            // Add SVG
             const svg = barcodeResult.svg;
             svg.setAttribute("data-barcode", code);
             svg.style.width = "100%";
             svg.style.maxWidth = "500px";
             item.appendChild(svg);
             
-            // 商品名を追加（あれば）
+            // Add product name (if any)
             if (productName) {
                 const productNameDiv = document.createElement('div');
                 productNameDiv.style.marginTop = "10px";
@@ -306,19 +306,19 @@
                 item.appendChild(productNameDiv);
             }
             
-            // ダウンロードボタンコンテナ
+            // Download button container
             const buttonContainer = document.createElement('div');
             buttonContainer.className = 'button-container';
             
-            // SVGダウンロードボタン
+            // SVG download button
             const svgButton = document.createElement('button');
-            svgButton.textContent = 'SVGをダウンロード';
+            svgButton.textContent = 'Download SVG';
             svgButton.onclick = () => downloadSVG(svg, code);
             buttonContainer.appendChild(svgButton);
             
-            // PNGダウンロードボタン
+            // PNG download button
             const pngButton = document.createElement('button');
-            pngButton.textContent = 'PNGをダウンロード';
+            pngButton.textContent = 'Download PNG';
             pngButton.onclick = () => downloadPNG(svg, code);
             buttonContainer.appendChild(pngButton);
             
@@ -327,7 +327,7 @@
             return item;
         }
         
-        // SVGダウンロード関数
+        // SVG download function
         function downloadSVG(svgElement, code) {
             const svgData = new XMLSerializer().serializeToString(svgElement);
             const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
@@ -342,7 +342,7 @@
             URL.revokeObjectURL(url);
         }
         
-        // PNGダウンロード関数
+        // PNG download function
         function downloadPNG(svgElement, code) {
             const svgData = new XMLSerializer().serializeToString(svgElement);
             const canvas = document.createElement('canvas');
@@ -353,9 +353,9 @@
             const url = URL.createObjectURL(svgBlob);
             
             img.onload = function() {
-                canvas.width = img.width * 2;  // 高解像度化
+                canvas.width = img.width * 2;  // Higher resolution
                 canvas.height = img.height * 2;
-                ctx.scale(2, 2);  // 拡大してレンダリング
+                ctx.scale(2, 2);  // Scale for rendering
                 ctx.drawImage(img, 0, 0);
                 
                 canvas.toBlob(function(blob) {
@@ -373,13 +373,13 @@
             img.src = url;
         }
         
-        // 単一バーコード生成ボタンのイベントリスナー
+        // Single barcode generation button event listener
         document.getElementById('generateButton').addEventListener('click', function() {
             const code = document.getElementById('barcodeInput').value.trim();
             const productName = document.getElementById('productNameInput').value.trim();
             
             if (!code) {
-                document.getElementById('error').textContent = 'バーコード内容を入力してください。';
+                document.getElementById('error').textContent = 'Please enter barcode content.';
                 return;
             }
             
@@ -391,10 +391,10 @@
             container.appendChild(barcodeItem);
         });
         
-        // 一括ダウンロード処理用のグローバル変数
+        // Global variable for bulk download processing
         let generatedBarcodes = [];
 
-        // CSVファイル読み込みのイベントリスナー
+        // CSV file loading event listener
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -409,7 +409,7 @@
                         
                         if (validData.length === 0) {
                             document.getElementById('error').textContent = 
-                                '有効なデータが見つかりませんでした。CSVの1列目にバーコード内容、2列目に商品名を入力してください。';
+                                'No valid data found. Please ensure the CSV has barcode content in column 1 and product name in column 2.';
                             return;
                         }
                         
@@ -417,7 +417,7 @@
                         const container = document.getElementById('barcodeContainer');
                         container.innerHTML = '';
                         
-                        // 生成されたバーコード情報をリセット
+                        // Reset generated barcode information
                         generatedBarcodes = [];
                         
                         validData.forEach(row => {
@@ -427,7 +427,7 @@
                             const barcodeItem = createBarcodeItem(code, productName);
                             container.appendChild(barcodeItem);
                             
-                            // バーコード情報を保存
+                            // Save barcode information
                             if (barcodeItem.querySelector('svg')) {
                                 generatedBarcodes.push({
                                     code: code,
@@ -437,7 +437,7 @@
                             }
                         });
                         
-                        // バーコードが生成されたら一括ダウンロードボタンを表示
+                        // Show bulk download buttons if barcodes were generated
                         if (generatedBarcodes.length > 0) {
                             document.getElementById('bulkDownloadContainer').style.display = 'flex';
                         } else {
@@ -446,45 +446,45 @@
                     },
                     error: function(error) {
                         document.getElementById('error').textContent = 
-                            'CSVファイルの読み込み中にエラーが発生しました: ' + error.message;
+                            'An error occurred while reading the CSV file: ' + error.message;
                     }
                 });
             };
             
             reader.onerror = function(error) {
                 document.getElementById('error').textContent = 
-                    'ファイルの読み込み中にエラーが発生しました: ' + error.message;
+                    'An error occurred while reading the file: ' + error.message;
             };
             
             reader.readAsText(file);
         });
-        // ZIPファイル作成用のライブラリを読み込み
+        // Load ZIP file creation library
         const zipScript = document.createElement('script');
         zipScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
         document.head.appendChild(zipScript);
         
-        // 一括SVGダウンロードボタンのイベントリスナー
+        // Bulk SVG download button event listener
         document.getElementById('bulkDownloadSVG').addEventListener('click', function() {
             if (typeof JSZip === 'undefined') {
-                alert('ZIPライブラリの読み込み中です。少々お待ちください。');
+                alert('ZIP library is still loading. Please wait a moment.');
                 return;
             }
             
             if (generatedBarcodes.length === 0) {
-                alert('ダウンロードできるバーコードがありません。');
+                alert('No barcodes available for download.');
                 return;
             }
             
             const zip = new JSZip();
             
-            // SVGファイルを追加
+            // Add SVG files
             generatedBarcodes.forEach(barcode => {
                 const svgData = new XMLSerializer().serializeToString(barcode.svg);
                 const fileName = `barcode_${barcode.code}.svg`;
                 zip.file(fileName, svgData);
             });
             
-            // ZIPファイルを生成してダウンロード
+            // Generate ZIP file and download
             zip.generateAsync({type: 'blob'}).then(function(content) {
                 const url = URL.createObjectURL(content);
                 const link = document.createElement('a');
@@ -497,24 +497,24 @@
             });
         });
         
-        // 一括PNGダウンロードボタンのイベントリスナー
+        // Bulk PNG download button event listener
         document.getElementById('bulkDownloadPNG').addEventListener('click', async function() {
             if (typeof JSZip === 'undefined') {
-                alert('ZIPライブラリの読み込み中です。少々お待ちください。');
+                alert('ZIP library is still loading. Please wait a moment.');
                 return;
             }
             
             if (generatedBarcodes.length === 0) {
-                alert('ダウンロードできるバーコードがありません。');
+                alert('No barcodes available for download.');
                 return;
             }
             
-            // ダウンロード開始メッセージ
-            document.getElementById('error').textContent = 'PNGファイルを生成中です。これには時間がかかる場合があります...';
+            // Download start message
+            document.getElementById('error').textContent = 'Generating PNG files. This may take some time...';
             
             const zip = new JSZip();
             
-            // 各SVGをPNGに変換して追加
+            // Convert each SVG to PNG and add
             try {
                 for (let i = 0; i < generatedBarcodes.length; i++) {
                     const barcode = generatedBarcodes[i];
@@ -524,7 +524,7 @@
                     zip.file(fileName, pngData);
                 }
                 
-                // ZIPファイルを生成してダウンロード
+                // Generate ZIP file and download
                 const content = await zip.generateAsync({type: 'blob'});
                 const url = URL.createObjectURL(content);
                 const link = document.createElement('a');
@@ -537,11 +537,11 @@
                 
                 document.getElementById('error').textContent = '';
             } catch (error) {
-                document.getElementById('error').textContent = 'エラーが発生しました: ' + error.message;
+                document.getElementById('error').textContent = 'An error occurred: ' + error.message;
             }
         });
         
-        // SVGをPNGに変換する関数
+        // Function to convert SVG to PNG
         function svgToPng(svgData, code) {
             return new Promise((resolve, reject) => {
                 const canvas = document.createElement('canvas');
@@ -552,7 +552,7 @@
                 const url = URL.createObjectURL(svgBlob);
                 
                 img.onload = function() {
-                    canvas.width = img.width * 2;  // 高解像度化
+                    canvas.width = img.width * 2;  // Higher resolution
                     canvas.height = img.height * 2;
                     ctx.scale(2, 2);
                     ctx.drawImage(img, 0, 0);
